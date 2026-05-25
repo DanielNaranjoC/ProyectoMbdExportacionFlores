@@ -581,6 +581,27 @@ def plot_acf_pacf_graphs(series: pd.Series, output_dir: Path) -> None:
 
     save_figure(fig, output_dir / "07_acf_pacf_serie_original.svg")
 
+def plot_acf_pacf_graphs_t(t_series: pd.Series, output_dir: Path) -> None:
+    """
+    Genera y guarda los gráficos ACF y PACF de la serie original.
+
+    Parameters
+    ----------
+    series : pandas.Series
+        Serie temporal mensual.
+    output_dir : pathlib.Path
+        Carpeta donde se guardará el gráfico.
+    """
+    fig, axes = plt.subplots(2, 1, figsize=(10, 7.5))
+
+    plot_acf(t_series.dropna(), lags=48, ax=axes[0])
+    axes[0].set_title("ACF - Serie transformada")
+
+    plot_pacf(t_series.dropna(), lags=48, ax=axes[1], method="ywm")
+    axes[1].set_title("PACF - Serie transformada")
+
+    save_figure(fig, output_dir / "07_1_acf_pacf_serie_transformada.svg")
+
 
 def kruskal_seasonality_test(series: pd.Series) -> dict:
     """
@@ -1843,13 +1864,16 @@ def run_analysis() -> None:
     )
 
     generate_exploratory_plots(plot_data, OUTPUT_DIR)
+    y_transf = apply_differences(monthly_series, d=1, seasonal_d=0, period=12)
 
     stationarity_df = stationarity_tests(
         monthly_series,
         name="Serie original",
     )
+    
     plot_decomposition(monthly_series, OUTPUT_DIR)
     plot_acf_pacf_graphs(monthly_series, OUTPUT_DIR)
+    plot_acf_pacf_graphs_t(y_transf, OUTPUT_DIR)
     kruskal_result = kruskal_seasonality_test(monthly_series)
 
     ets_results, ets_comparison = fit_ets_models(monthly_series)
